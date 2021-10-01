@@ -4,9 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TodoApi.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace TodoApi.Controllers
 {
+    [Produces("application/json")]
     [Route("api/[controller]")]
     [ApiController]
     public class TodoItemsController : ControllerBase
@@ -18,7 +20,13 @@ namespace TodoApi.Controllers
             _context = context;
         }
 
+        /// <summary>
+        /// Get all ToDo items
+        /// </summary>
+        /// <returns></returns>
+        /// <response code="200">Returns all items</response>
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<TodoItemDTO>))]
         public async Task<ActionResult<IEnumerable<TodoItemDTO>>> GetTodoItems()
         {
             return await _context.TodoItems
@@ -26,7 +34,16 @@ namespace TodoApi.Controllers
                 .ToListAsync();
         }
 
+        /// <summary>
+        /// Get one ToDo items
+        /// </summary>
+        /// <param name="id">Id of existing ToDo items</param>
+        /// <returns></returns>
+        /// <response code="200">Return item with requested id</response>
+        /// <response code="404">Item not found</response>
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TodoItemDTO))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<TodoItemDTO>> GetTodoItem(long id)
         {
             var todoItem = await _context.TodoItems.FindAsync(id);
@@ -39,7 +56,19 @@ namespace TodoApi.Controllers
             return ItemToDTO(todoItem);
         }
 
+        /// <summary>
+        /// Update ToDo item
+        /// </summary>
+        /// <param name="id">Id of existing ToDo items</param>
+        /// <param name="todoItemDTO">New data for existing ToDo item</param>
+        /// <returns></returns>
+        /// <response code="204">Item with requested id is updated</response>
+        /// <response code="404">Item with requested id is not found</response>
+        /// <response code="400">requested id is not equals with id in body</response>
         [HttpPut("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateTodoItem(long id, TodoItemDTO todoItemDTO)
         {
             if (id != todoItemDTO.Id)
@@ -68,7 +97,16 @@ namespace TodoApi.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// Create new ToDo item
+        /// </summary>
+        /// <param name="todoItemDTO">New data for ToDo item</param>
+        /// <returns></returns>
+        /// <response code="201">Return created item</response>
+        /// <response code="400">Input data is null</response>
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(TodoItemDTO))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<TodoItemDTO>> CreateTodoItem(TodoItemDTO todoItemDTO)
         {
             var todoItem = new TodoItem
@@ -86,7 +124,16 @@ namespace TodoApi.Controllers
                 ItemToDTO(todoItem));
         }
 
+        /// <summary>
+        /// Delete ToDo item
+        /// </summary>
+        /// <param name="id">Id of existing ToDo items</param>
+        /// <returns></returns>
+        /// <response code="204">ToDo item with requested id is deleted</response>
+        /// <response code="404">ToDo item with requested id not found</response>
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteTodoItem(long id)
         {
             var todoItem = await _context.TodoItems.FindAsync(id);
