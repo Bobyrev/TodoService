@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ using Microsoft.Extensions.Logging;
 using TodoApi.Models;
 using System.IO;
 using System.Reflection;
+using Microsoft.AspNetCore.Diagnostics;
 
 namespace TodoApi
 {
@@ -47,6 +49,30 @@ namespace TodoApi
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseExceptionHandler(appError => 
+            {
+                appError.Run(async context =>
+                {
+                    var contextFeature = context.Features.Get<IExceptionHandlerFeature>();
+                    if (contextFeature != null)
+                    {
+                        var directory = Configuration.GetValue<string>("LogFolder");
+                        if (!Directory.Exists(directory))
+                            Directory.CreateDirectory(directory);
+
+                        var filePath = Path.Combine(directory, $"{DateTime.Now:dd-MM-yyyy}.txt");
+
+                        using (var sw = new StreamWriter(filePath, true)) 
+                        {
+                            StringBuilder exeptionMessage = new StringBuilder($"{DateTime.Now:dd.MM.yyyy HH:mm}{Environment.NewLine}");
+                            exeptionMessage.Append($"{contextFeature.Error}{Environment.NewLine}");
+                            exeptionMessage.Append($"--------------------------{Environment.NewLine}");
+                            await sw.WriteAsync(exeptionMessage);
+                        }
+                    }
+                });
+            });
 
             app.UseHttpsRedirection();
 
