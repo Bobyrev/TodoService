@@ -12,10 +12,16 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using TodoApi.Models;
 using System.IO;
 using System.Reflection;
 using Microsoft.AspNetCore.Diagnostics;
+using TodoApi.Data;
+using TodoApi.Data.Abstract;
+using TodoApi.Mappers.Abstract;
+using TodoApi.Mappers;
+using TodoApi.Services.ViewModels;
+using TodoApi.Data.Models;
+using TodoApi.Services;
 
 namespace TodoApi
 {
@@ -40,6 +46,10 @@ namespace TodoApi
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
             });
+
+            services.AddScoped(typeof(IEntityBaseRepository<>), typeof(EntityBaseRepository<>));
+            services.AddSingleton<IBaseMapper<TodoItem, TodoItemDTO>, TodoMapper>();
+            services.AddScoped<TodoService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
